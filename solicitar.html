@@ -136,8 +136,8 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyCwawbpUOOOLepx4SxLRb0Jac58-2Fix6c",
@@ -168,16 +168,8 @@ function maskCEP(v){ return v.replace(/\D/g,'').replace(/^(\d{5})(\d)/,'$1-$2').
 ['f-cnpjTomador','f-cnpjColeta','f-cnpjDestino'].forEach(id => document.getElementById(id)?.addEventListener('input', e => e.target.value = maskCNPJ(e.target.value)));
 ['f-cepColeta','f-cepDestino'].forEach(id => document.getElementById(id)?.addEventListener('input', e => e.target.value = maskCEP(e.target.value)));
 
-// ── Se usuário admin já está logado, mostrar link direto para o painel
-onAuthStateChanged(auth, user => {
-  loader(false);
-  if (user && user.email) {
-    // Admin logado — link do painel vai direto, sem precisar logar de novo
-    $('btn-painel-nav').href = 'painel.html';
-  }
-});
-
 // Garantir auth anônima para operações de solicitante
+onAuthStateChanged(auth, () => { loader(false); });
 signInAnonymously(auth).catch(() => {});
 
 // ── ACESSO ────────────────────────────────────────────────
@@ -216,12 +208,20 @@ window.sair = function() {
 // ── LISTENER ──────────────────────────────────────────────
 function iniciarListener() {
   if (solicitacoesListener) solicitacoesListener();
-  const q = query(collection(db,'solicitacoes'), where('requesterEmail','==',currentUser.email), orderBy('createdAt','desc'));
+  // Sem orderBy para evitar exigência de índice composto no Firestore
+  // Ordenação feita no lado do cliente após receber os dados
+  const q = query(collection(db,'solicitacoes'), where('requesterEmail','==',currentUser.email));
   solicitacoesListener = onSnapshot(q, snap => {
-    minhasSolicitacoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    minhasSolicitacoes = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const ta = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+        const tb = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+        return tb - ta; // mais recente primeiro
+      });
     renderHistorico();
     $('hist-count').textContent = minhasSolicitacoes.length;
-  }, err => console.error('Listener:', err));
+  }, err => console.error('Listener erro:', err));
 }
 
 // ── STATUS BADGE ──────────────────────────────────────────
