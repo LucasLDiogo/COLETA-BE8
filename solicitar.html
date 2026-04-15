@@ -21,12 +21,13 @@
   </div>
   <nav class="header-nav">
     <a href="solicitar.html" class="btn-nav active">📋 Solicitação</a>
-    <a href="painel.html" class="btn-nav">📊 Painel Operacional</a>
+    <a href="painel.html" class="btn-nav" id="btn-painel-nav">📊 Painel Operacional</a>
   </nav>
 </header>
 
 <main class="main-wrap">
 
+  <!-- TELA DE ACESSO -->
   <div id="screen-access">
     <div class="login-wrap" style="min-height:calc(100vh - 64px)">
       <div class="login-box">
@@ -35,7 +36,7 @@
         </div>
         <h2>Solicitação de Cotação / Coleta</h2>
         <p>Informe seu nome e e-mail para acessar o histórico ou criar uma nova solicitação.</p>
-        <div class="login-form" id="access-form">
+        <div class="login-form">
           <div id="access-alert"></div>
           <div class="form-group">
             <label>Nome completo <span class="req">*</span></label>
@@ -51,6 +52,7 @@
     </div>
   </div>
 
+  <!-- TELA PRINCIPAL -->
   <div id="screen-main" class="hidden">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px">
       <div class="page-title" style="margin:0">
@@ -68,6 +70,7 @@
       <button class="tab" onclick="switchTab('tab-historico',this)">📂 Histórico (<span id="hist-count">0</span>)</button>
     </div>
 
+    <!-- TAB NOVA -->
     <div id="tab-nova" class="tab-content active">
       <div class="card">
         <div class="card-header">
@@ -121,6 +124,7 @@
       </div>
     </div>
 
+    <!-- TAB HISTÓRICO -->
     <div id="tab-historico" class="tab-content">
       <div id="hist-list">
         <div class="empty-state"><div class="empty-icon">📂</div><p>Nenhuma solicitação encontrada.</p></div>
@@ -134,7 +138,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyCwawbpUOOOLepx4SxLRb0Jac58-2Fix6c",
@@ -147,7 +151,7 @@ const app = initializeApp({
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-let currentUser = { name: '', email: '' };
+let currentUser = { name:'', email:'' };
 let editingId = null;
 let solicitacoesListener = null;
 let minhasSolicitacoes = [];
@@ -159,26 +163,25 @@ const showAlert = (id, type, msg) => {
   setTimeout(() => { $(id).innerHTML = ''; }, 5000);
 };
 
-function maskCNPJ(v) {
-  return v.replace(/\D/g,'').replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2').slice(0,18);
-}
-function maskCEP(v) {
-  return v.replace(/\D/g,'').replace(/^(\d{5})(\d)/,'$1-$2').slice(0,9);
-}
+function maskCNPJ(v){ return v.replace(/\D/g,'').replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2').slice(0,18); }
+function maskCEP(v){ return v.replace(/\D/g,'').replace(/^(\d{5})(\d)/,'$1-$2').slice(0,9); }
 
-['f-cnpjTomador','f-cnpjColeta','f-cnpjDestino'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', e => e.target.value = maskCNPJ(e.target.value));
-});
-['f-cepColeta','f-cepDestino'].forEach(id => {
-  document.getElementById(id)?.addEventListener('input', e => e.target.value = maskCEP(e.target.value));
-});
+['f-cnpjTomador','f-cnpjColeta','f-cnpjDestino'].forEach(id => document.getElementById(id)?.addEventListener('input', e => e.target.value = maskCNPJ(e.target.value)));
+['f-cepColeta','f-cepDestino'].forEach(id => document.getElementById(id)?.addEventListener('input', e => e.target.value = maskCEP(e.target.value)));
 
+// ── Se usuário admin já está logado, mostrar link direto para o painel
 onAuthStateChanged(auth, user => {
-  if (!user) signInAnonymously(auth).catch(console.error);
   loader(false);
+  if (user && user.email) {
+    // Admin logado — link do painel vai direto, sem precisar logar de novo
+    $('btn-painel-nav').href = 'painel.html';
+  }
 });
-signInAnonymously(auth).catch(console.error);
 
+// Garantir auth anônima para operações de solicitante
+signInAnonymously(auth).catch(() => {});
+
+// ── ACESSO ────────────────────────────────────────────────
 window.acessar = async function() {
   const name = $('acc-name').value.trim();
   const email = $('acc-email').value.trim().toLowerCase();
@@ -211,6 +214,7 @@ window.sair = function() {
   $('acc-email').value = '';
 };
 
+// ── LISTENER ──────────────────────────────────────────────
 function iniciarListener() {
   if (solicitacoesListener) solicitacoesListener();
   const q = query(collection(db,'solicitacoes'), where('requesterEmail','==',currentUser.email), orderBy('createdAt','desc'));
@@ -221,30 +225,43 @@ function iniciarListener() {
   }, err => console.error('Listener:', err));
 }
 
-function statusBadgeHtml(status) {
-  const map = {'A tratar':'atratar','Cotação':'cotacao','Aprovação':'aprovacao','Coleta':'coleta','Em trânsito':'transito','Entregue':'entregue','Cancelado':'cancelado'};
-  return `<span class="badge badge-${map[status]||'atratar'}">${status}</span>`;
+// ── STATUS BADGE ──────────────────────────────────────────
+function statusBadgeHtml(s) {
+  const m = {'A tratar':'atratar','Cotação':'cotacao','Aprovação':'aprovacao','Coleta':'coleta','Em trânsito':'transito','Entregue':'entregue','Cancelado':'cancelado'};
+  return `<span class="badge badge-${m[s]||'atratar'}">${s}</span>`;
 }
 
+// ── RENDER HISTÓRICO ──────────────────────────────────────
 function renderHistorico() {
   const list = $('hist-list');
   if (!minhasSolicitacoes.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Nenhuma solicitação ainda.</p></div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📂</div><p>Nenhuma solicitação ainda. Crie sua primeira na aba "Nova Solicitação".</p></div>`;
     return;
   }
   list.innerHTML = minhasSolicitacoes.map(s => {
     const dt = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleString('pt-BR') : '—';
-    const canEdit = !['Entregue','Cancelado'].includes(s.status);
-    const winner = s.vencedora?.transportadora
-      ? `<div class="soli-winner">🏆 Coleta: <strong>${s.vencedora.transportadora}</strong> | CNPJ: ${s.vencedora.cnpj||'—'} | Cotação nº ${s.numeroCotacao||'—'} | R$ ${Number(s.vencedora.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>` : '';
-    return `<div class="soli-card mb-1">
+    // Somente edita se ainda não passou de "Cotação"
+    const statusBloqueado = ['Aprovação','Coleta','Em trânsito','Entregue','Cancelado'].includes(s.status);
+    const canEdit = !statusBloqueado;
+
+    // Seção de resultado da cotação (vencedora) — somente leitura
+    const winnerHtml = s.vencedora?.transportadora ? `
+      <div class="soli-winner">
+        🏆 <strong>Transportadora definida:</strong> ${s.vencedora.transportadora}
+        &nbsp;|&nbsp; CNPJ: ${s.vencedora.cnpj || '—'}
+        &nbsp;|&nbsp; Valor: <strong>R$ ${Number(s.vencedora.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>
+        ${s.numeroCotacao ? `&nbsp;|&nbsp; Cotação nº <strong>${s.numeroCotacao}</strong>` : ''}
+      </div>` : '';
+
+    return `
+    <div class="soli-card mb-1">
       <div class="soli-card-header">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="soli-card-id">#${s.id.slice(0,8).toUpperCase()}</span>
-          ${s.numeroCotacao?`<span style="font-size:.78rem;color:var(--slate)">Cotação: <strong style="color:var(--white)">${s.numeroCotacao}</strong></span>`:''}
-          ${statusBadgeHtml(s.status||'A tratar')}
+          ${s.numeroCotacao ? `<span style="font-size:.78rem;color:var(--slate)">Cotação: <strong style="color:var(--white)">${s.numeroCotacao}</strong></span>` : ''}
+          ${statusBadgeHtml(s.status || 'A tratar')}
         </div>
-        ${canEdit?`<button class="btn btn-secondary btn-sm" onclick="editarSolicitacao('${s.id}')">✏️ Editar</button>`:''}
+        ${canEdit ? `<button class="btn btn-secondary btn-sm" onclick="editarSolicitacao('${s.id}')">✏️ Editar</button>` : `<span style="font-size:.72rem;color:var(--slate)">🔒 Bloqueado para edição</span>`}
       </div>
       <div class="soli-card-info">
         <div class="soli-info-item"><span class="soli-info-label">Data</span><span class="soli-info-val">${dt}</span></div>
@@ -253,10 +270,15 @@ function renderHistorico() {
         <div class="soli-info-item"><span class="soli-info-label">Peso</span><span class="soli-info-val">${s.peso||'—'} kg</span></div>
         <div class="soli-info-item"><span class="soli-info-label">Valor NF</span><span class="soli-info-val">R$ ${Number(s.valorNF||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span></div>
         <div class="soli-info-item"><span class="soli-info-label">Remetente</span><span class="soli-info-val">${s.nomeEmpresaColeta||'—'}</span></div>
-      </div>${winner}</div>`;
+        <div class="soli-info-item"><span class="soli-info-label">Nº Pedido</span><span class="soli-info-val">${s.numeroPedido||'—'}</span></div>
+        <div class="soli-info-item"><span class="soli-info-label">Material</span><span class="soli-info-val">${s.descricaoMaterial||'—'}</span></div>
+      </div>
+      ${winnerHtml}
+    </div>`;
   }).join('');
 }
 
+// ── SALVAR ────────────────────────────────────────────────
 window.salvarSolicitacao = async function() {
   const data = {
     requesterName: currentUser.name, requesterEmail: currentUser.email,
@@ -270,7 +292,11 @@ window.salvarSolicitacao = async function() {
     peso: $('f-peso').value.trim(), volume: $('f-volume').value.trim(),
     valorNF: parseFloat($('f-valorNF').value.replace(',','.'))||0,
     dimensoes: $('f-dimensoes').value.trim(), descricaoMaterial: $('f-descricaoMaterial').value.trim(),
-    quimico: $('f-quimico').value, updatedAt: serverTimestamp(),
+    quimico: $('f-quimico').value,
+    updatedAt: serverTimestamp(),
+    // Flag de alteração pelo solicitante — para alertar o painel
+    alteradoPorSolicitante: !!editingId,
+    alteradoEm: editingId ? serverTimestamp() : null,
   };
   const required = ['solicitante','cnpjTomador','cnpjColeta','nomeEmpresaColeta','cepColeta','cidadeColeta','enderecoCompleto','cnpjDestino','nomeDestino','cidadeDestino','peso','volume','descricaoMaterial'];
   if (required.some(k => !data[k])) return showAlert('form-alert','error','⚠️ Preencha todos os campos obrigatórios (*).');
@@ -279,9 +305,16 @@ window.salvarSolicitacao = async function() {
     if (editingId) {
       await updateDoc(doc(db,'solicitacoes',editingId), data);
       showAlert('form-alert','success','✅ Solicitação atualizada!');
-      editingId = null; $('form-soli-id').classList.add('hidden');
+      editingId = null;
+      $('form-soli-id').classList.add('hidden');
     } else {
-      Object.assign(data, { status:'A tratar', createdAt: serverTimestamp(), cotacao1:{}, cotacao2:{}, cotacao3:{}, vencedora:{}, numeroCotacao:'', reducao:'', operador:'', unidade:'', tipoFrete:'', observacoes:'', cotacaoFechada:'', valorFechado:0 });
+      Object.assign(data, {
+        status:'A tratar', createdAt: serverTimestamp(),
+        cotacao1:{}, cotacao2:{}, cotacao3:{}, vencedora:{},
+        numeroCotacao:'', reducao:'', operador:'', unidade:'', tipoFrete:'',
+        observacoes:'', cotacaoFechada:'', valorFechado:0,
+        alteradoPorSolicitante: false, alteradoEm: null,
+      });
       await addDoc(collection(db,'solicitacoes'), data);
       showAlert('form-alert','success','✅ Solicitação enviada com sucesso!');
     }
@@ -293,11 +326,13 @@ window.salvarSolicitacao = async function() {
   } finally { loader(false); }
 };
 
+// ── EDITAR ────────────────────────────────────────────────
 window.editarSolicitacao = function(id) {
-  const s = minhasSolicitacoes.find(x => x.id === id);
-  if (!s) return;
+  const s = minhasSolicitacoes.find(x => x.id === id); if (!s) return;
   editingId = id;
-  ['solicitante','numeroPedido','centroCusto','cnpjTomador','cnpjColeta','nomeEmpresaColeta','cepColeta','cidadeColeta','enderecoCompleto','horarioColeta','cnpjDestino','nomeDestino','cepDestino','cidadeDestino','peso','volume','valorNF','dimensoes','descricaoMaterial'].forEach(k => {
+  ['solicitante','numeroPedido','centroCusto','cnpjTomador','cnpjColeta','nomeEmpresaColeta',
+   'cepColeta','cidadeColeta','enderecoCompleto','horarioColeta','cnpjDestino','nomeDestino',
+   'cepDestino','cidadeDestino','peso','volume','valorNF','dimensoes','descricaoMaterial'].forEach(k => {
     const el = $('f-'+k); if (el) el.value = s[k]||'';
   });
   $('f-quimico').value = s.quimico||'Não';
@@ -317,8 +352,12 @@ window.novaSolicitacao = function() { limparForm(); switchTab('tab-nova', docume
 
 window.limparForm = function() {
   editingId = null; $('form-soli-id').classList.add('hidden');
-  ['f-numeroPedido','f-centroCusto','f-cnpjTomador','f-cnpjColeta','f-nomeEmpresaColeta','f-cepColeta','f-cidadeColeta','f-enderecoCompleto','f-horarioColeta','f-cnpjDestino','f-nomeDestino','f-cepDestino','f-cidadeDestino','f-peso','f-volume','f-valorNF','f-dimensoes','f-descricaoMaterial'].forEach(id => { const el = $(id); if (el) el.value=''; });
-  $('f-quimico').value='Não'; $('f-solicitante').value = currentUser.name;
+  ['f-numeroPedido','f-centroCusto','f-cnpjTomador','f-cnpjColeta','f-nomeEmpresaColeta',
+   'f-cepColeta','f-cidadeColeta','f-enderecoCompleto','f-horarioColeta','f-cnpjDestino',
+   'f-nomeDestino','f-cepDestino','f-cidadeDestino','f-peso','f-volume','f-valorNF',
+   'f-dimensoes','f-descricaoMaterial'].forEach(id => { const el=$(id); if(el) el.value=''; });
+  $('f-quimico').value = 'Não';
+  $('f-solicitante').value = currentUser.name;
 };
 </script>
 </body>
