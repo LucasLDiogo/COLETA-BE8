@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solicitação de Cotação/Coleta Be8 — Transporte</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/logo-be8.png" />
+</head>
+<body>
+
+<!-- ── LOADER ────────────────────────────────────────────── -->
+<div class="loader-overlay" id="loader">
+  <div class="spinner"></div>
+  <div class="loader-text">Carregando...</div>
+</div>
+
+<!-- ── HEADER ────────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-logo">
+    <img src="assets/logo-be8.png" alt="Be8" />
+    <span class="sys-name">Portal de Cotação<br>Transporte</span>
+  </div>
+  <nav class="header-nav">
+    <a href="solicitacao.html" class="btn-nav active">📋 Solicitação</a>
+    <a href="painel.html" class="btn-nav">📊 Painel Operacional</a>
+  </nav>
+</header>
+
+<!-- ── MAIN ──────────────────────────────────────────────── -->
+<main class="main-wrap">
+
+  <!-- ACCESS SCREEN -->
+  <div id="screen-access">
+    <div class="login-wrap" style="min-height:calc(100vh - 64px)">
+      <div class="login-box">
+        <div class="login-logo">
+          <img src="assets/logo-be8-secundaria.jpg" alt="Be8" />
+        </div>
+        <h2>Solicitação de Cotação / Coleta</h2>
+        <p>Informe seu nome e e-mail para acessar o histórico ou criar uma nova solicitação.</p>
+
+        <div class="login-form" id="access-form">
+          <div id="access-alert"></div>
+          <div class="form-group">
+            <label>Nome completo <span class="req">*</span></label>
+            <input type="text" id="acc-name" placeholder="Seu nome" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label>E-mail <span class="req">*</span></label>
+            <input type="email" id="acc-email" placeholder="seu@email.com" autocomplete="email" />
+          </div>
+          <button class="btn btn-primary btn-lg w-full" onclick="acessar()">
+            Acessar Portal →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN SCREEN (after login) -->
+  <div id="screen-main" class="hidden">
+
+    <!-- Welcome bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px">
+      <div class="page-title" style="margin:0">
+        <h1>
+          <span class="title-icon">📋</span>
+          Solicitação de Cotação
+        </h1>
+        <p id="welcome-msg" style="margin-left:0;margin-top:4px"></p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="novaSolicitacao()">➕ Nova Solicitação</button>
+        <button class="btn btn-secondary btn-sm" onclick="sair()">⬅ Sair</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tab-nova', this)">📝 Nova Solicitação</button>
+      <button class="tab" onclick="switchTab('tab-historico', this)">📂 Histórico (<span id="hist-count">0</span>)</button>
+    </div>
+
+    <!-- TAB: Nova Solicitação -->
+    <div id="tab-nova" class="tab-content active">
+      <div class="card">
+        <div class="card-header">
+          <h2><span class="icon">📦</span> Dados da Solicitação</h2>
+          <div id="form-soli-id" class="hidden">
+            <span class="soli-card-id" id="editing-id-label"></span>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <div id="form-alert" class="mb-1"></div>
+
+          <!-- SEÇÃO 1: Solicitante -->
+          <div class="section-title">Dados do Solicitante</div>
+          <div class="form-grid mb-1">
+            <div class="form-group">
+              <label>Nome do solicitante <span class="req">*</span></label>
+              <input type="text" id="f-solicitante" />
+            </div>
+            <div class="form-group">
+              <label>Número do pedido</label>
+              <input type="text" id="f-numeroPedido" placeholder="Ex: SAP 4500XXXXX" />
+            </div>
+            <div class="form-group">
+              <label>Centro de custo</label>
+              <input type="text" id="f-centroCusto" placeholder="Ex: 3010" />
+            </div>
+            <div class="form-group">
+              <label>CNPJ Tomador <span class="req">*</span></label>
+              <input type="text" id="f-cnpjTomador" placeholder="00.000.000/0001-00" maxlength="18" />
+            </div>
+          </div>
+
+          <!-- SEÇÃO 2: Origem -->
+          <div class="section-title">Dados de Origem (Coleta)</div>
+          <div class="form-grid mb-1">
+            <div class="form-group">
+              <label>CNPJ de coleta <span class="req">*</span></label>
+              <input type="text" id="f-cnpjColeta" placeholder="00.000.000/0001-00" maxlength="18" />
+            </div>
+            <div class="form-group">
+              <label>Nome empresa de coleta <span class="req">*</span></label>
+              <input type="text" id="f-nomeEmpresaColeta" placeholder="Razão social" />
+            </div>
+            <div class="form-group">
+              <label>CEP de coleta <span class="req">*</span></label>
+              <input type="text" id="f-cepColeta" placeholder="00000-000" maxlength="9" />
+            </div>
+            <div class="form-group">
+              <label>Cidade de coleta <span class="req">*</span></label>
+              <input type="text" id="f-cidadeColeta" placeholder="Cidade / UF" />
+            </div>
+            <div class="form-group full">
+              <label>Endereço completo de coleta <span class="req">*</span></label>
+              <input type="text" id="f-enderecoCompleto" placeholder="Rua, número, bairro" />
+            </div>
+            <div class="form-group">
+              <label>Horário de coleta</label>
+              <input type="text" id="f-horarioColeta" placeholder="Ex: 08:00 às 17:00" />
+            </div>
+          </div>
+
+          <!-- SEÇÃO 3: Destino -->
+          <div class="section-title">Dados de Destino</div>
+          <div class="form-grid mb-1">
+            <div class="form-group">
+              <label>CNPJ destino <span class="req">*</span></label>
+              <input type="text" id="f-cnpjDestino" placeholder="00.000.000/0001-00" maxlength="18" />
+            </div>
+            <div class="form-group">
+              <label>Nome destino <span class="req">*</span></label>
+              <input type="text" id="f-nomeDestino" placeholder="Ex: Be8 Passo Fundo" />
+            </div>
+            <div class="form-group">
+              <label>CEP destino</label>
+              <input type="text" id="f-cepDestino" placeholder="00000-000" maxlength="9" />
+            </div>
+            <div class="form-group">
+              <label>Cidade destino <span class="req">*</span></label>
+              <input type="text" id="f-cidadeDestino" placeholder="Cidade / UF" />
+            </div>
+          </div>
+
+          <!-- SEÇÃO 4: Carga -->
+          <div class="section-title">Dados da Carga</div>
+          <div class="form-grid mb-1">
+            <div class="form-group">
+              <label>Peso (kg) <span class="req">*</span></label>
+              <input type="text" id="f-peso" placeholder="Ex: 150" />
+            </div>
+            <div class="form-group">
+              <label>Volume / Quantidade <span class="req">*</span></label>
+              <input type="text" id="f-volume" placeholder="Ex: 2 paletes" />
+            </div>
+            <div class="form-group">
+              <label>Valor da NF (R$) <span class="req">*</span></label>
+              <input type="text" id="f-valorNF" placeholder="Ex: 15000.00" />
+            </div>
+            <div class="form-group">
+              <label>Dimensões (L x A x C)</label>
+              <input type="text" id="f-dimensoes" placeholder="Ex: 100x80x120 cm" />
+            </div>
+            <div class="form-group">
+              <label>Produto / Descrição do material <span class="req">*</span></label>
+              <input type="text" id="f-descricaoMaterial" placeholder="Descrição do material" />
+            </div>
+            <div class="form-group">
+              <label>Produto Químico?</label>
+              <select id="f-quimico">
+                <option value="Não">Não</option>
+                <option value="Sim">Sim</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary btn-lg" onclick="salvarSolicitacao()">
+              💾 Salvar Solicitação
+            </button>
+            <button class="btn btn-secondary" onclick="limparForm()">🗑 Limpar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Histórico -->
+    <div id="tab-historico" class="tab-content">
+      <div id="hist-list">
+        <div class="empty-state">
+          <div class="empty-icon">📂</div>
+          <p>Nenhuma solicitação encontrada.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen-main -->
+
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  Desenvolvido por Lucas L. Diogo para Be8 2026
+</footer>
+
+<script type="module" src="solicitacao.js"></script>
+</body>
+</html>
