@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Recebimento de Cotações — Be8</title>
+  <link rel="stylesheet" href="estilos.css" />
+  <link rel="icon" href="assets/logo-be8.png" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- SheetJS -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+  <!-- jsPDF + autotable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader-overlay" id="loader">
+  <div class="spinner"></div>
+  <div class="loader-text" id="loader-text">Carregando painel...</div>
+</div>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-logo">
+    <img src="./assets/logo-be8.png" alt="Be8" />
+    <span class="sys-name">Painel Operacional<br>Cotações</span>
+  </div>
+  <nav class="header-nav">
+    <a href="solicitar.html" class="btn-nav">📋 Solicitação</a>
+    <a href="painel.html" class="btn-nav active">📊 Painel Operacional</a>
+    <button class="btn-nav" onclick="abrirModalUnidades()">⚙️ Unidades</button>
+    <span id="user-info" style="font-size:0.75rem;color:var(--slate);padding:0 8px"></span>
+    <button class="btn-nav" id="btn-login-admin" onclick="toggleAdminLogin()">🔐 Admin</button>
+  </nav>
+</header>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal-overlay hidden" id="modal-admin-login">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>🔐 Acesso Administrativo</h3>
+      <button class="modal-close" onclick="fecharModal('modal-admin-login')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="admin-login-alert"></div>
+      <div class="form-group mb-1">
+        <label>E-mail</label>
+        <input type="email" id="admin-email" placeholder="admin@be8.com.br" />
+      </div>
+      <div class="form-group">
+        <label>Senha</label>
+        <input type="password" id="admin-senha" placeholder="••••••••" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modal-admin-login')">Cancelar</button>
+      <button class="btn btn-primary" onclick="loginAdmin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UNIDADES -->
+<div class="modal-overlay hidden" id="modal-unidades">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h3>⚙️ Gerenciar Unidades</h3>
+      <button class="modal-close" onclick="fecharModal('modal-unidades')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="unidades-list" style="margin-bottom:1rem"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nova-unidade-input" placeholder="Nome da nova unidade" class="w-full" />
+        <button class="btn btn-primary btn-sm" onclick="adicionarUnidade()">➕</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modal-unidades')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CARD DETALHADO -->
+<div class="modal-overlay hidden" id="modal-card">
+  <div class="modal" style="max-width:980px">
+    <div class="modal-header">
+      <h3 id="modal-card-title">📦 Detalhes da Solicitação</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-secondary btn-sm" onclick="gerarPDF()">📄 PDF</button>
+        <button class="modal-close" onclick="fecharModal('modal-card')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-card-body" style="max-height:75vh;overflow-y:auto">
+      <!-- Injected by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-delete-card" onclick="confirmarExclusao()">🗑 Excluir</button>
+      <button class="btn btn-secondary" onclick="fecharModal('modal-card')">Fechar</button>
+      <button class="btn btn-primary" onclick="salvarCard()">💾 Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay hidden" id="modal-confirm">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h3>⚠️ Confirmar Exclusão</h3></div>
+    <div class="modal-body"><p style="color:var(--white-dim)">Tem certeza que deseja excluir esta solicitação? Esta ação não pode ser desfeita.</p></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal('modal-confirm')">Cancelar</button>
+      <button class="btn btn-danger" onclick="excluirCard()">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main-wrap">
+
+  <div class="page-title">
+    <h1><span class="title-icon">📊</span> Painel de Recebimento de Cotações</h1>
+    <p>Gestão completa do fluxo de cotações e coletas Be8</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="main-tabs">
+    <button class="tab active" onclick="switchMainTab('tab-painel', this)">🗂 Cards</button>
+    <button class="tab" onclick="switchMainTab('tab-dashboard', this)">📈 Dashboard</button>
+    <button class="tab" onclick="switchMainTab('tab-tabela', this)">📋 Tabela Geral</button>
+  </div>
+
+  <!-- ─ TAB PAINEL (Cards) ─────────────────────────────────── -->
+  <div id="tab-painel" class="tab-content active">
+
+    <!-- Filters -->
+    <div class="filter-bar mb-1">
+      <div class="search-input-wrap" style="flex:2">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-cards" placeholder="Buscar por empresa, cidade, CNPJ, nº pedido..." oninput="filtrarCards()" />
+      </div>
+      <select id="filter-status" onchange="filtrarCards()" style="min-width:140px">
+        <option value="">Todos os status</option>
+        <option>A tratar</option><option>Cotação</option><option>Aprovação</option>
+        <option>Coleta</option><option>Em trânsito</option><option>Entregue</option><option>Cancelado</option>
+      </select>
+      <select id="filter-unidade" onchange="filtrarCards()" style="min-width:160px">
+        <option value="">Todas as unidades</option>
+      </select>
+      <select id="filter-frete" onchange="filtrarCards()" style="min-width:140px">
+        <option value="">Todos os fretes</option>
+        <option>Fracionado</option><option>Dedicado</option>
+      </select>
+      <input type="date" id="filter-de" onchange="filtrarCards()" title="Data de" />
+      <input type="date" id="filter-ate" onchange="filtrarCards()" title="Data até" />
+      <button class="btn btn-secondary btn-sm" onclick="limparFiltros()">✕ Limpar</button>
+    </div>
+
+    <!-- KPIs row -->
+    <div class="kpi-grid" id="kpi-cards-row">
+      <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🔵</div><div class="kpi-val" id="kpi-atratar">0</div><div class="kpi-label">A tratar</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🟡</div><div class="kpi-val" id="kpi-cotacao">0</div><div class="kpi-label">Cotação</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🟣</div><div class="kpi-val" id="kpi-aprovacao">0</div><div class="kpi-label">Aprovação</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🔵</div><div class="kpi-val" id="kpi-coleta">0</div><div class="kpi-label">Coleta</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🟠</div><div class="kpi-val" id="kpi-transito">0</div><div class="kpi-label">Em trânsito</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🟢</div><div class="kpi-val green" id="kpi-entregue">0</div><div class="kpi-label">Entregue</div></div>
+      <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-val green" id="kpi-reducao">R$ 0</div><div class="kpi-label">Redução Total</div></div>
+    </div>
+
+    <!-- Cards grid -->
+    <div id="cards-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">
+      <div class="empty-state"><div class="empty-icon">📭</div><p>Aguardando solicitações...</p></div>
+    </div>
+  </div>
+
+  <!-- ─ TAB DASHBOARD ──────────────────────────────────────── -->
+  <div id="tab-dashboard" class="tab-content">
+    <!-- KPIs executivos -->
+    <div class="kpi-grid" id="dash-kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-bottom:2rem">
+      <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-val" id="d-total">0</div><div class="kpi-label">Solicitações Totais</div></div>
+      <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-val green" id="d-negociado">R$ 0</div><div class="kpi-label">Valor Negociado</div></div>
+      <div class="kpi-card"><div class="kpi-icon">📉</div><div class="kpi-val green" id="d-reducao">R$ 0</div><div class="kpi-label">Redução Total</div></div>
+      <div class="kpi-card"><div class="kpi-icon">📊</div><div class="kpi-val" id="d-media">R$ 0</div><div class="kpi-label">Economia Média</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🚚</div><div class="kpi-val" id="d-fracionado">0</div><div class="kpi-label">Fracionado</div></div>
+      <div class="kpi-card"><div class="kpi-icon">🚛</div><div class="kpi-val" id="d-dedicado">0</div><div class="kpi-label">Dedicado</div></div>
+    </div>
+
+    <!-- Filters dashboard -->
+    <div class="filter-bar mb-2">
+      <select id="d-filter-unidade" onchange="renderDashboard()" style="min-width:160px"><option value="">Todas unidades</option></select>
+      <input type="date" id="d-filter-de" onchange="renderDashboard()" />
+      <input type="date" id="d-filter-ate" onchange="renderDashboard()" />
+      <button class="btn btn-secondary btn-sm" onclick="limparFiltrosDash()">✕</button>
+    </div>
+
+    <div class="charts-grid">
+      <div class="card">
+        <div class="card-header"><h2><span class="icon">📊</span> Solicitações por Status</h2></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chart-status"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon">📈</span> Evolução Diária</h2></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chart-diario"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon">🏢</span> Por Unidade</h2></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chart-unidade"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2><span class="icon">🏆</span> Ranking Transportadoras</h2></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="chart-transportadora"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─ TAB TABELA ─────────────────────────────────────────── -->
+  <div id="tab-tabela" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="icon">📋</span> Tabela Geral de Cotações</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" onclick="exportarExcel()">📊 Excel</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportarPDFTabela()">📄 PDF</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="filter-bar mb-1">
+          <div class="search-input-wrap" style="flex:2">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-tabela" placeholder="Buscar na tabela..." oninput="filtrarTabela()" />
+          </div>
+          <select id="t-filter-status" onchange="filtrarTabela()">
+            <option value="">Todos status</option>
+            <option>A tratar</option><option>Cotação</option><option>Aprovação</option>
+            <option>Coleta</option><option>Em trânsito</option><option>Entregue</option><option>Cancelado</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table id="tabela-geral">
+            <thead><tr id="tabela-header"></tr></thead>
+            <tbody id="tabela-body"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination-bar">
+          <span id="pag-info"></span>
+          <div class="pagination-controls" id="pag-controls"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-footer">Desenvolvido por Lucas L. Diogo para Be8 2026</footer>
+
+<script type="module" src="painel.js"></script>
+</body>
+</html>
