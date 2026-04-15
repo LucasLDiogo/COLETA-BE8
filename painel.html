@@ -6,23 +6,18 @@
   <title>Painel de Recebimento de Cotações — Be8</title>
   <link rel="stylesheet" href="estilos.css" />
   <link rel="icon" href="assetslogo-be8.png.png" />
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- SheetJS -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-  <!-- jsPDF + autotable -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
-<!-- LOADER -->
 <div class="loader-overlay" id="loader">
   <div class="spinner"></div>
   <div class="loader-text" id="loader-text">Carregando painel...</div>
 </div>
 
-<!-- HEADER -->
 <header class="site-header">
   <div class="header-logo">
     <img src="assetslogo-be8.png.png" alt="Be8" />
@@ -30,30 +25,21 @@
   </div>
   <nav class="header-nav">
     <a href="solicitar.html" class="btn-nav">📋 Solicitação</a>
-    <a href="painel.html" class="btn-nav active">📊 Painel Operacional</a>
+    <a href="painel.html" class="btn-nav active">📊 Painel</a>
     <button class="btn-nav" onclick="abrirModalUnidades()">⚙️ Unidades</button>
-    <span id="user-info" style="font-size:0.75rem;color:var(--slate);padding:0 8px"></span>
+    <span id="user-info" style="font-size:.75rem;color:var(--slate);padding:0 8px"></span>
     <button class="btn-nav" id="btn-login-admin" onclick="toggleAdminLogin()">🔐 Admin</button>
   </nav>
 </header>
 
-<!-- ADMIN LOGIN MODAL -->
+<!-- MODAL ADMIN LOGIN -->
 <div class="modal-overlay hidden" id="modal-admin-login">
   <div class="modal" style="max-width:400px">
-    <div class="modal-header">
-      <h3>🔐 Acesso Administrativo</h3>
-      <button class="modal-close" onclick="fecharModal('modal-admin-login')">✕</button>
-    </div>
+    <div class="modal-header"><h3>🔐 Acesso Administrativo</h3><button class="modal-close" onclick="fecharModal('modal-admin-login')">✕</button></div>
     <div class="modal-body">
       <div id="admin-login-alert"></div>
-      <div class="form-group mb-1">
-        <label>E-mail</label>
-        <input type="email" id="admin-email" placeholder="admin@be8.com.br" />
-      </div>
-      <div class="form-group">
-        <label>Senha</label>
-        <input type="password" id="admin-senha" placeholder="••••••••" />
-      </div>
+      <div class="form-group mb-1"><label>E-mail</label><input type="email" id="admin-email" placeholder="admin@be8.com.br" /></div>
+      <div class="form-group"><label>Senha</label><input type="password" id="admin-senha" /></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="fecharModal('modal-admin-login')">Cancelar</button>
@@ -65,24 +51,16 @@
 <!-- MODAL UNIDADES -->
 <div class="modal-overlay hidden" id="modal-unidades">
   <div class="modal" style="max-width:500px">
-    <div class="modal-header">
-      <h3>⚙️ Gerenciar Unidades</h3>
-      <button class="modal-close" onclick="fecharModal('modal-unidades')">✕</button>
-    </div>
+    <div class="modal-header"><h3>⚙️ Gerenciar Unidades</h3><button class="modal-close" onclick="fecharModal('modal-unidades')">✕</button></div>
     <div class="modal-body">
       <div id="unidades-list" style="margin-bottom:1rem"></div>
-      <div style="display:flex;gap:8px">
-        <input type="text" id="nova-unidade-input" placeholder="Nome da nova unidade" class="w-full" />
-        <button class="btn btn-primary btn-sm" onclick="adicionarUnidade()">➕</button>
-      </div>
+      <div style="display:flex;gap:8px"><input type="text" id="nova-unidade-input" placeholder="Nova unidade" class="w-full" /><button class="btn btn-primary btn-sm" onclick="adicionarUnidade()">➕</button></div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="fecharModal('modal-unidades')">Fechar</button>
-    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="fecharModal('modal-unidades')">Fechar</button></div>
   </div>
 </div>
 
-<!-- MODAL CARD DETALHADO -->
+<!-- MODAL CARD -->
 <div class="modal-overlay hidden" id="modal-card">
   <div class="modal" style="max-width:980px">
     <div class="modal-header">
@@ -92,18 +70,16 @@
         <button class="modal-close" onclick="fecharModal('modal-card')">✕</button>
       </div>
     </div>
-    <div class="modal-body" id="modal-card-body" style="max-height:75vh;overflow-y:auto">
-      <!-- Injected by JS -->
-    </div>
+    <div class="modal-body" id="modal-card-body" style="max-height:75vh;overflow-y:auto"></div>
     <div class="modal-footer">
-      <button class="btn btn-danger btn-sm" id="btn-delete-card" onclick="confirmarExclusao()">🗑 Excluir</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmarExclusao()">🗑 Excluir</button>
       <button class="btn btn-secondary" onclick="fecharModal('modal-card')">Fechar</button>
-      <button class="btn btn-primary" onclick="salvarCard()">💾 Salvar Alterações</button>
+      <button class="btn btn-primary" onclick="salvarCard()">💾 Salvar</button>
     </div>
   </div>
 </div>
 
-<!-- CONFIRM MODAL -->
+<!-- MODAL CONFIRM -->
 <div class="modal-overlay hidden" id="modal-confirm">
   <div class="modal" style="max-width:420px">
     <div class="modal-header"><h3>⚠️ Confirmar Exclusão</h3></div>
@@ -115,49 +91,30 @@
   </div>
 </div>
 
-<!-- MAIN -->
 <main class="main-wrap">
-
   <div class="page-title">
     <h1><span class="title-icon">📊</span> Painel de Recebimento de Cotações</h1>
     <p>Gestão completa do fluxo de cotações e coletas Be8</p>
   </div>
 
-  <!-- TABS -->
   <div class="tabs" id="main-tabs">
-    <button class="tab active" onclick="switchMainTab('tab-painel', this)">🗂 Cards</button>
-    <button class="tab" onclick="switchMainTab('tab-dashboard', this)">📈 Dashboard</button>
-    <button class="tab" onclick="switchMainTab('tab-tabela', this)">📋 Tabela Geral</button>
+    <button class="tab active" onclick="switchMainTab('tab-painel',this)">🗂 Cards</button>
+    <button class="tab" onclick="switchMainTab('tab-dashboard',this)">📈 Dashboard</button>
+    <button class="tab" onclick="switchMainTab('tab-tabela',this)">📋 Tabela Geral</button>
   </div>
 
-  <!-- ─ TAB PAINEL (Cards) ─────────────────────────────────── -->
+  <!-- TAB CARDS -->
   <div id="tab-painel" class="tab-content active">
-
-    <!-- Filters -->
     <div class="filter-bar mb-1">
-      <div class="search-input-wrap" style="flex:2">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-cards" placeholder="Buscar por empresa, cidade, CNPJ, nº pedido..." oninput="filtrarCards()" />
-      </div>
-      <select id="filter-status" onchange="filtrarCards()" style="min-width:140px">
-        <option value="">Todos os status</option>
-        <option>A tratar</option><option>Cotação</option><option>Aprovação</option>
-        <option>Coleta</option><option>Em trânsito</option><option>Entregue</option><option>Cancelado</option>
-      </select>
-      <select id="filter-unidade" onchange="filtrarCards()" style="min-width:160px">
-        <option value="">Todas as unidades</option>
-      </select>
-      <select id="filter-frete" onchange="filtrarCards()" style="min-width:140px">
-        <option value="">Todos os fretes</option>
-        <option>Fracionado</option><option>Dedicado</option>
-      </select>
-      <input type="date" id="filter-de" onchange="filtrarCards()" title="Data de" />
-      <input type="date" id="filter-ate" onchange="filtrarCards()" title="Data até" />
-      <button class="btn btn-secondary btn-sm" onclick="limparFiltros()">✕ Limpar</button>
+      <div class="search-input-wrap" style="flex:2"><span class="search-icon">🔍</span><input type="text" id="search-cards" placeholder="Buscar..." oninput="filtrarCards()" /></div>
+      <select id="filter-status" onchange="filtrarCards()" style="min-width:140px"><option value="">Todos status</option><option>A tratar</option><option>Cotação</option><option>Aprovação</option><option>Coleta</option><option>Em trânsito</option><option>Entregue</option><option>Cancelado</option></select>
+      <select id="filter-unidade" onchange="filtrarCards()" style="min-width:160px"><option value="">Todas unidades</option></select>
+      <select id="filter-frete" onchange="filtrarCards()" style="min-width:140px"><option value="">Todos fretes</option><option>Fracionado</option><option>Dedicado</option></select>
+      <input type="date" id="filter-de" onchange="filtrarCards()" />
+      <input type="date" id="filter-ate" onchange="filtrarCards()" />
+      <button class="btn btn-secondary btn-sm" onclick="limparFiltros()">✕</button>
     </div>
-
-    <!-- KPIs row -->
-    <div class="kpi-grid" id="kpi-cards-row">
+    <div class="kpi-grid">
       <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-val" id="kpi-total">0</div><div class="kpi-label">Total</div></div>
       <div class="kpi-card"><div class="kpi-icon">🔵</div><div class="kpi-val" id="kpi-atratar">0</div><div class="kpi-label">A tratar</div></div>
       <div class="kpi-card"><div class="kpi-icon">🟡</div><div class="kpi-val" id="kpi-cotacao">0</div><div class="kpi-label">Cotação</div></div>
@@ -167,93 +124,405 @@
       <div class="kpi-card"><div class="kpi-icon">🟢</div><div class="kpi-val green" id="kpi-entregue">0</div><div class="kpi-label">Entregue</div></div>
       <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-val green" id="kpi-reducao">R$ 0</div><div class="kpi-label">Redução Total</div></div>
     </div>
-
-    <!-- Cards grid -->
     <div id="cards-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem">
       <div class="empty-state"><div class="empty-icon">📭</div><p>Aguardando solicitações...</p></div>
     </div>
   </div>
 
-  <!-- ─ TAB DASHBOARD ──────────────────────────────────────── -->
+  <!-- TAB DASHBOARD -->
   <div id="tab-dashboard" class="tab-content">
-    <!-- KPIs executivos -->
-    <div class="kpi-grid" id="dash-kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-bottom:2rem">
-      <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-val" id="d-total">0</div><div class="kpi-label">Solicitações Totais</div></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));margin-bottom:2rem">
+      <div class="kpi-card"><div class="kpi-icon">📦</div><div class="kpi-val" id="d-total">0</div><div class="kpi-label">Total</div></div>
       <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-val green" id="d-negociado">R$ 0</div><div class="kpi-label">Valor Negociado</div></div>
       <div class="kpi-card"><div class="kpi-icon">📉</div><div class="kpi-val green" id="d-reducao">R$ 0</div><div class="kpi-label">Redução Total</div></div>
       <div class="kpi-card"><div class="kpi-icon">📊</div><div class="kpi-val" id="d-media">R$ 0</div><div class="kpi-label">Economia Média</div></div>
       <div class="kpi-card"><div class="kpi-icon">🚚</div><div class="kpi-val" id="d-fracionado">0</div><div class="kpi-label">Fracionado</div></div>
       <div class="kpi-card"><div class="kpi-icon">🚛</div><div class="kpi-val" id="d-dedicado">0</div><div class="kpi-label">Dedicado</div></div>
     </div>
-
-    <!-- Filters dashboard -->
-    <div class="filter-bar mb-2">
-      <select id="d-filter-unidade" onchange="renderDashboard()" style="min-width:160px"><option value="">Todas unidades</option></select>
-      <input type="date" id="d-filter-de" onchange="renderDashboard()" />
-      <input type="date" id="d-filter-ate" onchange="renderDashboard()" />
-      <button class="btn btn-secondary btn-sm" onclick="limparFiltrosDash()">✕</button>
-    </div>
-
     <div class="charts-grid">
-      <div class="card">
-        <div class="card-header"><h2><span class="icon">📊</span> Solicitações por Status</h2></div>
-        <div class="card-body"><div class="chart-wrap"><canvas id="chart-status"></canvas></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><h2><span class="icon">📈</span> Evolução Diária</h2></div>
-        <div class="card-body"><div class="chart-wrap"><canvas id="chart-diario"></canvas></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><h2><span class="icon">🏢</span> Por Unidade</h2></div>
-        <div class="card-body"><div class="chart-wrap"><canvas id="chart-unidade"></canvas></div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><h2><span class="icon">🏆</span> Ranking Transportadoras</h2></div>
-        <div class="card-body"><div class="chart-wrap"><canvas id="chart-transportadora"></canvas></div></div>
-      </div>
+      <div class="card"><div class="card-header"><h2><span class="icon">📊</span> Por Status</h2></div><div class="card-body"><div class="chart-wrap"><canvas id="chart-status"></canvas></div></div></div>
+      <div class="card"><div class="card-header"><h2><span class="icon">📈</span> Evolução Diária</h2></div><div class="card-body"><div class="chart-wrap"><canvas id="chart-diario"></canvas></div></div></div>
+      <div class="card"><div class="card-header"><h2><span class="icon">🏢</span> Por Unidade</h2></div><div class="card-body"><div class="chart-wrap"><canvas id="chart-unidade"></canvas></div></div></div>
+      <div class="card"><div class="card-header"><h2><span class="icon">🏆</span> Ranking Transportadoras</h2></div><div class="card-body"><div class="chart-wrap"><canvas id="chart-transportadora"></canvas></div></div></div>
     </div>
   </div>
 
-  <!-- ─ TAB TABELA ─────────────────────────────────────────── -->
+  <!-- TAB TABELA -->
   <div id="tab-tabela" class="tab-content">
     <div class="card">
       <div class="card-header">
-        <h2><span class="icon">📋</span> Tabela Geral de Cotações</h2>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <h2><span class="icon">📋</span> Tabela Geral</h2>
+        <div style="display:flex;gap:8px">
           <button class="btn btn-secondary btn-sm" onclick="exportarExcel()">📊 Excel</button>
           <button class="btn btn-secondary btn-sm" onclick="exportarPDFTabela()">📄 PDF</button>
         </div>
       </div>
       <div class="card-body">
         <div class="filter-bar mb-1">
-          <div class="search-input-wrap" style="flex:2">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="search-tabela" placeholder="Buscar na tabela..." oninput="filtrarTabela()" />
-          </div>
-          <select id="t-filter-status" onchange="filtrarTabela()">
-            <option value="">Todos status</option>
-            <option>A tratar</option><option>Cotação</option><option>Aprovação</option>
-            <option>Coleta</option><option>Em trânsito</option><option>Entregue</option><option>Cancelado</option>
-          </select>
+          <div class="search-input-wrap" style="flex:2"><span class="search-icon">🔍</span><input type="text" id="search-tabela" placeholder="Buscar..." oninput="filtrarTabela()" /></div>
+          <select id="t-filter-status" onchange="filtrarTabela()"><option value="">Todos status</option><option>A tratar</option><option>Cotação</option><option>Aprovação</option><option>Coleta</option><option>Em trânsito</option><option>Entregue</option><option>Cancelado</option></select>
         </div>
-        <div class="table-wrap">
-          <table id="tabela-geral">
-            <thead><tr id="tabela-header"></tr></thead>
-            <tbody id="tabela-body"></tbody>
-          </table>
-        </div>
-        <div class="pagination" id="pagination-bar">
-          <span id="pag-info"></span>
-          <div class="pagination-controls" id="pag-controls"></div>
-        </div>
+        <div class="table-wrap"><table id="tabela-geral"><thead><tr id="tabela-header"></tr></thead><tbody id="tabela-body"></tbody></table></div>
+        <div class="pagination" id="pagination-bar"><span id="pag-info"></span><div class="pagination-controls" id="pag-controls"></div></div>
       </div>
     </div>
   </div>
-
 </main>
 
 <footer class="site-footer">Desenvolvido por Lucas L. Diogo para Be8 2026</footer>
 
-<script type="module" src="painel.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, getDocs, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyCwawbpUOOOLepx4SxLRb0Jac58-2Fix6c",
+  authDomain: "soli-coleta-be8.firebaseapp.com",
+  projectId: "soli-coleta-be8",
+  storageBucket: "soli-coleta-be8.firebasestorage.app",
+  messagingSenderId: "1017261741559",
+  appId: "1:1017261741559:web:17ddf76a15c8a653268af2"
+});
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let allSolicitacoes = [], filteredSolicitacoes = [], tabelaFiltered = [];
+let editingCardId = null, sortCol = null, sortAsc = true, tabelaPage = 1;
+const PER_PAGE = 25;
+let chartInstances = {}, isAdmin = false;
+let unidades = JSON.parse(localStorage.getItem('be8_unidades')||'["Be8 - Passo Fundo","Be8 - Nova Marilândia","Be8 - Floriano","Be8 - Marialva","Be8 - Santo Antônio do Tauá","Be8 - Alto Araguaia"]');
+
+const $ = id => document.getElementById(id);
+const loader = (show, msg='') => { $('loader').classList.toggle('hidden',!show); if(msg) $('loader-text').textContent=msg; };
+
+populateUnidadeSelects();
+
+onAuthStateChanged(auth, user => {
+  if (!user) signInAnonymously(auth).catch(console.error);
+  else initListener();
+});
+
+function initListener() {
+  const q = query(collection(db,'solicitacoes'), orderBy('createdAt','desc'));
+  onSnapshot(q, snap => {
+    allSolicitacoes = snap.docs.map(d => ({id:d.id,...d.data()}));
+    filteredSolicitacoes = [...allSolicitacoes];
+    tabelaFiltered = [...allSolicitacoes];
+    renderCards(); renderKPIs(); renderTabelaHTML();
+    loader(false);
+  }, err => { console.error(err); loader(false); });
+}
+
+function populateUnidadeSelects() {
+  ['filter-unidade','d-filter-unidade'].forEach(id => {
+    const el = $(id); if(!el) return;
+    const first = el.options[0]?.text||'Todas as unidades';
+    el.innerHTML = `<option value="">${first}</option>` + unidades.map(u=>`<option>${u}</option>`).join('');
+  });
+}
+
+window.abrirModalUnidades = function() { renderUnidadesList(); $('modal-unidades').classList.remove('hidden'); };
+function renderUnidadesList() {
+  $('unidades-list').innerHTML = unidades.map((u,i) =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--card-border)"><span style="font-size:.85rem">${u}</span><button class="btn btn-danger btn-sm" onclick="removerUnidade(${i})">✕</button></div>`
+  ).join('');
+}
+window.adicionarUnidade = function() {
+  const v = $('nova-unidade-input').value.trim(); if(!v) return;
+  unidades.push(v); localStorage.setItem('be8_unidades',JSON.stringify(unidades));
+  $('nova-unidade-input').value=''; renderUnidadesList(); populateUnidadeSelects();
+};
+window.removerUnidade = function(i) {
+  unidades.splice(i,1); localStorage.setItem('be8_unidades',JSON.stringify(unidades));
+  renderUnidadesList(); populateUnidadeSelects();
+};
+
+window.toggleAdminLogin = function() {
+  if(isAdmin) { signOut(auth).then(()=>{ isAdmin=false; $('user-info').textContent=''; $('btn-login-admin').textContent='🔐 Admin'; signInAnonymously(auth); }); }
+  else $('modal-admin-login').classList.remove('hidden');
+};
+window.loginAdmin = async function() {
+  const email=$('admin-email').value.trim(), pass=$('admin-senha').value;
+  if(!email||!pass) return;
+  loader(true);
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    isAdmin=true; $('user-info').textContent=`✅ ${email}`; $('btn-login-admin').textContent='🚪 Sair';
+    fecharModal('modal-admin-login');
+  } catch(e) { $('admin-login-alert').innerHTML=`<div class="alert alert-error">E-mail ou senha incorretos.</div>`; }
+  finally { loader(false); }
+};
+
+window.filtrarCards = function() {
+  const s=$('search-cards').value.toLowerCase(), st=$('filter-status').value, u=$('filter-unidade').value, f=$('filter-frete').value, de=$('filter-de').value, ate=$('filter-ate').value;
+  filteredSolicitacoes = allSolicitacoes.filter(x => {
+    if(s && !JSON.stringify(x).toLowerCase().includes(s)) return false;
+    if(st && x.status!==st) return false;
+    if(u && x.unidade!==u) return false;
+    if(f && x.tipoFrete!==f) return false;
+    if(de||ate){ const dt=x.createdAt?.toDate?x.createdAt.toDate():null; if(dt){ if(de&&dt<new Date(de)) return false; if(ate&&dt>new Date(ate+'T23:59:59')) return false; } }
+    return true;
+  });
+  renderCards(); renderKPIs();
+};
+window.limparFiltros = function() {
+  ['search-cards','filter-status','filter-unidade','filter-frete','filter-de','filter-ate'].forEach(id=>{if($(id))$(id).value='';});
+  filteredSolicitacoes=[...allSolicitacoes]; renderCards(); renderKPIs();
+};
+
+function statusBadgeHtml(s) {
+  const m={'A tratar':'atratar','Cotação':'cotacao','Aprovação':'aprovacao','Coleta':'coleta','Em trânsito':'transito','Entregue':'entregue','Cancelado':'cancelado'};
+  return `<span class="badge badge-${m[s]||'atratar'}">${s}</span>`;
+}
+
+function renderCards() {
+  const cont=$('cards-container');
+  if(!filteredSolicitacoes.length){ cont.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📭</div><p>Nenhuma solicitação encontrada.</p></div>`; return; }
+  cont.innerHTML = filteredSolicitacoes.map(s => {
+    const dt=s.createdAt?.toDate?s.createdAt.toDate().toLocaleString('pt-BR'):'—';
+    const cots=[s.cotacao1,s.cotacao2,s.cotacao3].map((c,i)=>c?.transportadora?`<div style="font-size:.75rem;color:var(--white-dim);margin-top:3px">C${i+1}: <strong>${c.transportadora}</strong> R$${Number(c.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:'').join('');
+    const win=s.vencedora?.transportadora?`<div style="background:var(--teal-glow);border:1px solid var(--teal-line);border-radius:var(--radius-sm);padding:6px 10px;font-size:.75rem;color:var(--teal);margin-top:8px">🏆 ${s.vencedora.transportadora} · R$${Number(s.vencedora.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>`:'';
+    return `<div class="painel-card" onclick="abrirCard('${s.id}')">
+      <div class="painel-card-header">
+        <div><div class="painel-card-num">#${s.id.slice(0,8).toUpperCase()}</div>${s.numeroCotacao?`<div style="font-size:.7rem;color:var(--slate)">${s.numeroCotacao}</div>`:''}</div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">${statusBadgeHtml(s.status||'A tratar')}${s.unidade?`<span style="font-size:.68rem;color:var(--slate)">${s.unidade}</span>`:''}</div>
+      </div>
+      <div class="painel-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:.79rem;margin-bottom:8px">
+          <div><span style="color:var(--slate);font-size:.68rem">ORIGEM</span><br><strong>${s.cidadeColeta||'—'}</strong></div>
+          <div><span style="color:var(--slate);font-size:.68rem">DESTINO</span><br><strong>${s.cidadeDestino||'—'}</strong></div>
+          <div><span style="color:var(--slate);font-size:.68rem">SOLICITANTE</span><br>${s.solicitante||s.requesterName||'—'}</div>
+          <div><span style="color:var(--slate);font-size:.68rem">TIPO</span><br>${s.tipoFrete||'—'}</div>
+          <div><span style="color:var(--slate);font-size:.68rem">PESO</span><br>${s.peso||'—'} kg</div>
+          <div><span style="color:var(--slate);font-size:.68rem">VALOR NF</span><br>R$ ${Number(s.valorNF||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+        </div>${cots}${win}
+        <div style="font-size:.68rem;color:var(--slate);margin-top:8px;text-align:right">${dt}</div>
+      </div></div>`;
+  }).join('');
+}
+
+function renderKPIs() {
+  const s=filteredSolicitacoes;
+  $('kpi-total').textContent=s.length;
+  $('kpi-atratar').textContent=s.filter(x=>x.status==='A tratar').length;
+  $('kpi-cotacao').textContent=s.filter(x=>x.status==='Cotação').length;
+  $('kpi-aprovacao').textContent=s.filter(x=>x.status==='Aprovação').length;
+  $('kpi-coleta').textContent=s.filter(x=>x.status==='Coleta').length;
+  $('kpi-transito').textContent=s.filter(x=>x.status==='Em trânsito').length;
+  $('kpi-entregue').textContent=s.filter(x=>x.status==='Entregue').length;
+  const red=s.reduce((a,x)=>a+Math.abs(parseFloat(x.reducao)||0),0);
+  $('kpi-reducao').textContent=`R$ ${red.toLocaleString('pt-BR',{minimumFractionDigits:0})}`;
+}
+
+window.abrirCard = function(id) {
+  const s=allSolicitacoes.find(x=>x.id===id); if(!s) return;
+  editingCardId=id;
+  $('modal-card-title').innerHTML=`📦 <span class="mono" style="color:var(--teal)">#${id.slice(0,8).toUpperCase()}</span>`;
+  const mi=(label,key,opts=null)=>{
+    const v=s[key]??'';
+    if(opts) return `<div class="form-group"><label>${label}</label><select id="mc-${key}">${opts.map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+    return `<div class="form-group"><label>${label}</label><input type="text" id="mc-${key}" value="${String(v).replace(/"/g,'&quot;')}" /></div>`;
+  };
+  const c1=s.cotacao1||{},c2=s.cotacao2||{},c3=s.cotacao3||{};
+  const statOpts=['A tratar','Cotação','Aprovação','Coleta','Em trânsito','Entregue','Cancelado'];
+  $('modal-card-body').innerHTML=`
+  <div id="modal-save-alert"></div>
+  <div class="section-title">Status & Controle</div>
+  <div class="form-grid mb-1" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    ${mi('Status','status',statOpts)}${mi('Unidade','unidade',['', ...unidades])}${mi('Tipo Frete','tipoFrete',['','Fracionado','Dedicado'])}${mi('Operador','operador')}${mi('Nº Cotação','numeroCotacao')}${mi('Centro Custo','centroCusto')}
+  </div>
+  <div class="section-title">Solicitante</div>
+  <div class="form-grid mb-1" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    ${mi('Nome','solicitante')}${mi('E-mail','requesterEmail')}${mi('CNPJ Tomador','cnpjTomador')}${mi('Nº Pedido','numeroPedido')}
+  </div>
+  <div class="section-title">Origem</div>
+  <div class="form-grid mb-1" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    ${mi('CNPJ Origem','cnpjColeta')}${mi('Remetente','nomeEmpresaColeta')}${mi('Cidade Origem','cidadeColeta')}${mi('CEP Origem','cepColeta')}${mi('Endereço','enderecoCompleto')}${mi('Horário Coleta','horarioColeta')}
+  </div>
+  <div class="section-title">Destino</div>
+  <div class="form-grid mb-1" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    ${mi('CNPJ Destino','cnpjDestino')}${mi('Nome Destino','nomeDestino')}${mi('Cidade Destino','cidadeDestino')}${mi('CEP Destino','cepDestino')}
+  </div>
+  <div class="section-title">Carga</div>
+  <div class="form-grid mb-1" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    ${mi('Peso kg','peso')}${mi('Volume','volume')}${mi('Valor NF','valorNF')}${mi('Dimensões','dimensoes')}${mi('Descrição','descricaoMaterial')}${mi('Químico','quimico',['Não','Sim'])}
+  </div>
+  <div class="section-title">Cotações</div>
+  ${[1,2,3].map(n=>{const c=[null,c1,c2,c3][n];return `
+  <div style="background:rgba(13,27,42,.5);border:1px solid var(--card-border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:8px">
+    <div class="cotacao-label">Cotação ${n}</div>
+    <div class="cotacao-row">
+      <div class="form-group"><label>Transportadora</label><input type="text" id="mc-cot${n}-transp" value="${c?.transportadora||''}" /></div>
+      <div class="form-group"><label>CNPJ</label><input type="text" id="mc-cot${n}-cnpj" value="${c?.cnpj||''}" /></div>
+      <div class="form-group"><label>Valor R$</label><input type="number" id="mc-cot${n}-valor" value="${c?.valor||''}" step="0.01" /></div>
+    </div>
+    <button class="winner-btn ${s.vencedora?.cotacaoIdx===n?'selected':''}" id="wb-${n}" onclick="selecionarVencedora(${n})">🏆 Definir como vencedora</button>
+  </div>`}).join('')}
+  <div class="section-title">Resultado</div>
+  <div class="form-grid mb-1" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    ${mi('Cotação Fechada','cotacaoFechada')}${mi('Valor Fechado','valorFechado')}${mi('Redução','reducao')}
+  </div>
+  <div class="form-group mb-1"><label>Observações</label><textarea id="mc-observacoes" rows="3">${s.observacoes||''}</textarea></div>`;
+  $('modal-card-body').dataset.winnerIdx='';
+  $('modal-card').classList.remove('hidden');
+};
+
+window.selecionarVencedora = function(n) {
+  [1,2,3].forEach(i=>$(`wb-${i}`)?.classList.toggle('selected',i===n));
+  const t=$(`mc-cot${n}-transp`)?.value.trim()||'';
+  const v=parseFloat($(`mc-cot${n}-valor`)?.value)||0;
+  if($('mc-cotacaoFechada')) $('mc-cotacaoFechada').value=t;
+  if($('mc-valorFechado')) $('mc-valorFechado').value=v;
+  const outros=[1,2,3].filter(i=>i!==n).map(i=>parseFloat($(`mc-cot${i}-valor`)?.value)||0).filter(x=>x>0);
+  if($('mc-reducao')) $('mc-reducao').value=outros.length?(Math.max(...outros)-v).toFixed(2):0;
+  $('modal-card-body').dataset.winnerIdx=n;
+};
+
+window.salvarCard = async function() {
+  if(!editingCardId) return;
+  const g=id=>{const el=$(`mc-${id}`);return el?el.value.trim():'';};
+  const gn=id=>{const el=$(`mc-${id}`);return el?parseFloat(el.value)||0:0;};
+  const wi=parseInt($('modal-card-body').dataset.winnerIdx)||0;
+  const vencedora=wi?{cotacaoIdx:wi,transportadora:$(`mc-cot${wi}-transp`)?.value.trim()||'',cnpj:$(`mc-cot${wi}-cnpj`)?.value.trim()||'',valor:parseFloat($(`mc-cot${wi}-valor`)?.value)||0}:(allSolicitacoes.find(x=>x.id===editingCardId)?.vencedora||{});
+  const data={
+    status:g('status'),unidade:g('unidade'),tipoFrete:g('tipoFrete'),operador:g('operador'),numeroCotacao:g('numeroCotacao'),centroCusto:g('centroCusto'),
+    solicitante:g('solicitante'),requesterEmail:g('requesterEmail'),cnpjTomador:g('cnpjTomador'),numeroPedido:g('numeroPedido'),
+    cnpjColeta:g('cnpjColeta'),nomeEmpresaColeta:g('nomeEmpresaColeta'),cidadeColeta:g('cidadeColeta'),cepColeta:g('cepColeta'),enderecoCompleto:g('enderecoCompleto'),horarioColeta:g('horarioColeta'),
+    cnpjDestino:g('cnpjDestino'),nomeDestino:g('nomeDestino'),cidadeDestino:g('cidadeDestino'),cepDestino:g('cepDestino'),
+    peso:g('peso'),volume:g('volume'),valorNF:gn('valorNF'),dimensoes:g('dimensoes'),descricaoMaterial:g('descricaoMaterial'),quimico:g('quimico'),
+    cotacaoFechada:g('cotacaoFechada'),valorFechado:gn('valorFechado'),reducao:g('reducao'),
+    observacoes:$('mc-observacoes')?.value.trim()||'',
+    cotacao1:{transportadora:$('mc-cot1-transp')?.value.trim()||'',cnpj:$('mc-cot1-cnpj')?.value.trim()||'',valor:parseFloat($('mc-cot1-valor')?.value)||0},
+    cotacao2:{transportadora:$('mc-cot2-transp')?.value.trim()||'',cnpj:$('mc-cot2-cnpj')?.value.trim()||'',valor:parseFloat($('mc-cot2-valor')?.value)||0},
+    cotacao3:{transportadora:$('mc-cot3-transp')?.value.trim()||'',cnpj:$('mc-cot3-cnpj')?.value.trim()||'',valor:parseFloat($('mc-cot3-valor')?.value)||0},
+    vencedora, updatedAt:serverTimestamp()
+  };
+  loader(true,'Salvando...');
+  try { await updateDoc(doc(db,'solicitacoes',editingCardId),data); fecharModal('modal-card'); }
+  catch(e){ console.error(e); $('modal-save-alert').innerHTML=`<div class="alert alert-error">Erro: ${e.message}</div>`; }
+  finally { loader(false); }
+};
+
+window.confirmarExclusao = function() { $('modal-confirm').classList.remove('hidden'); };
+window.excluirCard = async function() {
+  if(!editingCardId) return; loader(true);
+  try { await deleteDoc(doc(db,'solicitacoes',editingCardId)); fecharModal('modal-confirm'); fecharModal('modal-card'); editingCardId=null; }
+  catch(e){ console.error(e); } finally { loader(false); }
+};
+
+window.fecharModal = id => $(id).classList.add('hidden');
+
+window.switchMainTab = function(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.remove('active'));
+  $(tabId).classList.add('active'); btn.classList.add('active');
+  if(tabId==='tab-dashboard') renderDashboard();
+  if(tabId==='tab-tabela') filtrarTabela();
+};
+
+window.renderDashboard = function() {
+  const data=allSolicitacoes;
+  const neg=data.reduce((a,s)=>a+(parseFloat(s.valorFechado)||0),0);
+  const red=data.reduce((a,s)=>a+Math.abs(parseFloat(s.reducao)||0),0);
+  $('d-total').textContent=data.length;
+  $('d-negociado').textContent=`R$ ${neg.toLocaleString('pt-BR',{minimumFractionDigits:0})}`;
+  $('d-reducao').textContent=`R$ ${red.toLocaleString('pt-BR',{minimumFractionDigits:0})}`;
+  $('d-media').textContent=`R$ ${(data.length?red/data.length:0).toLocaleString('pt-BR',{minimumFractionDigits:0})}`;
+  $('d-fracionado').textContent=data.filter(s=>s.tipoFrete==='Fracionado').length;
+  $('d-dedicado').textContent=data.filter(s=>s.tipoFrete==='Dedicado').length;
+  const C=['#1DB88A','#64B5F6','#FFD54F','#CE93D8','#80DEEA','#FFAB40','#EF9A9A','#A5D6A7'];
+  const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8BA4BC',font:{family:'Sora',size:11}}}},scales:{x:{ticks:{color:'#8BA4BC'},grid:{color:'rgba(139,164,188,.1)'}},y:{ticks:{color:'#8BA4BC'},grid:{color:'rgba(139,164,188,.1)'}}}};
+  const destroy=k=>{if(chartInstances[k]){chartInstances[k].destroy();delete chartInstances[k];}};
+  destroy('status'); destroy('diario'); destroy('unidade'); destroy('transp');
+  const statuses=['A tratar','Cotação','Aprovação','Coleta','Em trânsito','Entregue','Cancelado'];
+  chartInstances['status']=new Chart($('chart-status'),{type:'doughnut',data:{labels:statuses,datasets:[{data:statuses.map(s=>data.filter(x=>x.status===s).length),backgroundColor:C,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#8BA4BC'}}}}});
+  const dc={};data.forEach(s=>{const d=s.createdAt?.toDate?s.createdAt.toDate().toLocaleDateString('pt-BR'):null;if(d)dc[d]=(dc[d]||0)+1;});
+  const dl=Object.keys(dc).slice(-30);
+  chartInstances['diario']=new Chart($('chart-diario'),{type:'bar',data:{labels:dl,datasets:[{label:'Solicitações',data:dl.map(l=>dc[l]),backgroundColor:'rgba(29,184,138,.7)',borderRadius:4}]},options:opts});
+  const uc={};data.forEach(s=>{const u=s.unidade||'Sem unidade';uc[u]=(uc[u]||0)+1;});
+  chartInstances['unidade']=new Chart($('chart-unidade'),{type:'bar',data:{labels:Object.keys(uc),datasets:[{label:'Qtd',data:Object.values(uc),backgroundColor:C,borderRadius:4}]},options:{...opts,indexAxis:'y'}});
+  const tc={};data.forEach(s=>{const t=s.vencedora?.transportadora;if(t)tc[t]=(tc[t]||0)+1;});
+  const ts=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  chartInstances['transp']=new Chart($('chart-transportadora'),{type:'bar',data:{labels:ts.map(x=>x[0]),datasets:[{label:'Vitórias',data:ts.map(x=>x[1]),backgroundColor:C,borderRadius:4}]},options:{...opts,indexAxis:'y'}});
+};
+
+const COLS=[
+  {k:'createdAt',l:'DATA',f:(v)=>v?.toDate?v.toDate().toLocaleDateString('pt-BR'):'—'},
+  {k:'operador',l:'OPERADOR'},{k:'cotacaoFechada',l:'COTAÇÃO FECHADA'},
+  {k:'valorFechado',l:'VALOR FECHADO',f:v=>v?`R$ ${Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—'},
+  {k:'tipoFrete',l:'TIPO FRETE'},
+  {k:'_c1',l:'COTAÇÃO 1',f:(_,s)=>s.cotacao1?.transportadora||'—'},{k:'_v1',l:'VALOR COT.1',f:(_,s)=>s.cotacao1?.valor?`R$ ${Number(s.cotacao1.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—'},
+  {k:'_c2',l:'COTAÇÃO 2',f:(_,s)=>s.cotacao2?.transportadora||'—'},{k:'_v2',l:'VALOR COT.2',f:(_,s)=>s.cotacao2?.valor?`R$ ${Number(s.cotacao2.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—'},
+  {k:'_c3',l:'COTAÇÃO 3',f:(_,s)=>s.cotacao3?.transportadora||'—'},{k:'_v3',l:'VALOR COT.3',f:(_,s)=>s.cotacao3?.valor?`R$ ${Number(s.cotacao3.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—'},
+  {k:'reducao',l:'REDUÇÃO'},{k:'status',l:'STATUS'},{k:'solicitante',l:'SOLICITANTE'},
+  {k:'centroCusto',l:'CENTRO CUSTO'},{k:'cnpjTomador',l:'CNPJ TOMADOR'},{k:'cnpjColeta',l:'CNPJ ORIGEM'},
+  {k:'nomeEmpresaColeta',l:'NOME REMETENTE'},{k:'cidadeColeta',l:'CIDADE ORIGEM'},{k:'cepColeta',l:'CEP ORIGEM'},
+  {k:'cnpjDestino',l:'CNPJ DESTINO'},{k:'nomeDestino',l:'NOME DESTINO'},{k:'cidadeDestino',l:'CIDADE DESTINO'},{k:'cepDestino',l:'CEP DESTINO'},
+  {k:'valorNF',l:'VALOR NF',f:v=>v?`R$ ${Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:'—'},
+  {k:'volume',l:'VOLUMES'},{k:'peso',l:'PESO (KG)'},{k:'dimensoes',l:'DIMENSÕES'},{k:'quimico',l:'QUÍMICO'},
+  {k:'descricaoMaterial',l:'DESCRIÇÃO MATERIAL'},{k:'numeroPedido',l:'NÚMERO PEDIDO'},
+  {k:'numeroCotacao',l:'Nº COTAÇÃO'},{k:'unidade',l:'UNIDADE'},{k:'enderecoCompleto',l:'ENDEREÇO COLETA'},{k:'horarioColeta',l:'HORÁRIO COLETA'},
+  {k:'_win',l:'TRANSP. VENCEDORA',f:(_,s)=>s.vencedora?.transportadora||'—'},{k:'_winCNPJ',l:'CNPJ TRANSP.',f:(_,s)=>s.vencedora?.cnpj||'—'},
+];
+
+window.filtrarTabela = function() {
+  const s=$('search-tabela')?.value.toLowerCase()||'', st=$('t-filter-status')?.value||'';
+  tabelaFiltered=allSolicitacoes.filter(x=>{ if(st&&x.status!==st) return false; if(s&&!JSON.stringify(x).toLowerCase().includes(s)) return false; return true; });
+  tabelaPage=1; renderTabelaHTML();
+};
+
+function renderTabelaHTML() {
+  $('tabela-header').innerHTML=COLS.map((c,i)=>`<th onclick="sortTabela(${i})" ${sortCol===i?'class="sorted"':''}>${c.l} <span class="sort-icon">${sortCol===i?(sortAsc?'↑':'↓'):'⇅'}</span></th>`).join('')+'<th>AÇÃO</th>';
+  let data=[...tabelaFiltered];
+  if(sortCol!==null){const c=COLS[sortCol];data.sort((a,b)=>{const va=c.f?c.f(a[c.k],a):(a[c.k]||'');const vb=c.f?c.f(b[c.k],b):(b[c.k]||'');return sortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va));});}
+  const total=data.length, pages=Math.ceil(total/PER_PAGE)||1;
+  if(tabelaPage>pages) tabelaPage=1;
+  $('tabela-body').innerHTML=data.slice((tabelaPage-1)*PER_PAGE,tabelaPage*PER_PAGE).map(s=>`<tr>${COLS.map(c=>{const v=c.f?c.f(s[c.k],s):(s[c.k]??'—');return `<td title="${v}">${v}</td>`;}).join('')}<td><button class="btn btn-icon btn-sm" onclick="abrirCard('${s.id}')">✏️</button></td></tr>`).join('');
+  $('pag-info').textContent=`${total} registros · Pág. ${tabelaPage}/${pages}`;
+  $('pag-controls').innerHTML=`<button class="page-btn" onclick="goPage(1)" ${tabelaPage===1?'disabled':''}>«</button><button class="page-btn" onclick="goPage(${tabelaPage-1})" ${tabelaPage===1?'disabled':''}>‹</button><button class="page-btn active">${tabelaPage}</button><button class="page-btn" onclick="goPage(${tabelaPage+1})" ${tabelaPage===pages?'disabled':''}>›</button><button class="page-btn" onclick="goPage(${pages})" ${tabelaPage===pages?'disabled':''}>»</button>`;
+}
+window.goPage=p=>{tabelaPage=p;renderTabelaHTML();};
+window.sortTabela=i=>{if(sortCol===i)sortAsc=!sortAsc;else{sortCol=i;sortAsc=true;}renderTabelaHTML();};
+
+window.exportarExcel = function() {
+  const rows=[COLS.map(c=>c.l)];
+  tabelaFiltered.forEach(s=>rows.push(COLS.map(c=>String(c.f?c.f(s[c.k],s):(s[c.k]??'')).replace('R$ ',''))));
+  const wb=XLSX.utils.book_new(), ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=COLS.map(()=>({wch:20}));
+  XLSX.utils.book_append_sheet(wb,ws,'2026');
+  XLSX.writeFile(wb,`Be8_Cotacoes_${new Date().toISOString().slice(0,10)}.xlsx`);
+};
+
+window.exportarPDFTabela = function() {
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a3'});
+  pdf.setFontSize(14); pdf.text('Be8 — Relatório de Cotações',14,16);
+  pdf.setFontSize(9); pdf.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`,14,22);
+  const vc=COLS.slice(0,20);
+  pdf.autoTable({head:[vc.map(c=>c.l)],body:tabelaFiltered.map(s=>vc.map(c=>String(c.f?c.f(s[c.k],s):(s[c.k]??'—')))),startY:26,styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[13,27,42],textColor:255,fontStyle:'bold'},alternateRowStyles:{fillColor:[240,245,250]}});
+  pdf.save(`Be8_Cotacoes_${new Date().toISOString().slice(0,10)}.pdf`);
+};
+
+window.gerarPDF = function() {
+  const s=allSolicitacoes.find(x=>x.id===editingCardId); if(!s) return;
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  pdf.setFillColor(13,27,42); pdf.rect(0,0,210,35,'F');
+  pdf.setTextColor(29,184,138); pdf.setFontSize(18); pdf.setFont('helvetica','bold'); pdf.text('Be8',14,18);
+  pdf.setFontSize(9); pdf.setTextColor(200,220,240); pdf.text('Portal de Cotação — Transporte',14,26);
+  pdf.setFontSize(11); pdf.setTextColor(29,184,138); pdf.text(`Cotação Nº: ${s.numeroCotacao||'—'}`,130,15);
+  pdf.setFontSize(8); pdf.setTextColor(180,200,220); pdf.text(`Data: ${s.createdAt?.toDate?s.createdAt.toDate().toLocaleString('pt-BR'):'—'}`,130,21);
+  pdf.text(`Unidade: ${s.unidade||'—'}`,130,27);
+  let y=42;
+  const line=(lb,v)=>{pdf.setFontSize(8);pdf.setTextColor(100,130,160);pdf.setFont('helvetica','normal');pdf.text(lb+':',14,y);pdf.setTextColor(30,40,50);pdf.setFont('helvetica','bold');pdf.text(String(v||'—'),60,y);y+=7;};
+  const sec=t=>{y+=3;pdf.setFillColor(230,240,250);pdf.rect(14,y-4,182,7,'F');pdf.setFontSize(9);pdf.setFont('helvetica','bold');pdf.setTextColor(13,27,42);pdf.text(t,16,y);y+=6;};
+  sec('ORIGEM');line('CNPJ',s.cnpjColeta);line('Remetente',s.nomeEmpresaColeta);line('Endereço',s.enderecoCompleto);line('Cidade',s.cidadeColeta);line('CEP',s.cepColeta);line('Horário',s.horarioColeta);
+  sec('DESTINO');line('CNPJ',s.cnpjDestino);line('Nome',s.nomeDestino);line('Cidade',s.cidadeDestino);line('CEP',s.cepDestino);
+  sec('CARGA');line('Tipo Frete',s.tipoFrete);line('Peso (kg)',s.peso);line('Volume',s.volume);line('Dimensões',s.dimensoes);line('Valor NF',s.valorNF?`R$ ${Number(s.valorNF).toLocaleString('pt-BR',{minimumFractionDigits:2})}`:0);line('Material',s.descricaoMaterial);line('Químico',s.quimico);
+  pdf.setFontSize(7);pdf.setTextColor(150,170,190);pdf.text('Desenvolvido por Lucas L. Diogo para Be8 2026',14,290);
+  pdf.save(`Be8_Cotacao_${s.numeroCotacao||s.id.slice(0,8)}.pdf`);
+};
+</script>
 </body>
 </html>
